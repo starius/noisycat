@@ -1,0 +1,15 @@
+language: go
+
+go:
+  - 1.4
+  - 1.5
+  - 1.6
+  - 1.7
+
+os:
+  - linux
+  - osx
+
+script:
+  - go get -t github.com/starius/noisycat/...
+  - go test github.com/starius/noisycat/...

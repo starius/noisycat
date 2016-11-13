@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"io"
+	"io/ioutil"
 	"log"
 	"net"
 	"os"
@@ -10,11 +11,11 @@ import (
 )
 
 var (
-	mode     = flag.String("mode", "client", "client/server")
-	address  = flag.String("address", "127.0.0.1:24873", "")
-	target   = flag.String("target", "127.0.0.1:22", "")
-	password = flag.String("password", "", "")
-	period   = flag.Duration("period", 10*time.Millisecond, "")
+	mode    = flag.String("mode", "client", "client/server")
+	address = flag.String("address", "127.0.0.1:24873", "")
+	target  = flag.String("target", "127.0.0.1:22", "")
+	keyfile = flag.String("keyfile", "", "")
+	period  = flag.Duration("period", 10*time.Millisecond, "")
 )
 
 type StdRWC struct {
@@ -36,6 +37,16 @@ func (s *StdRWC) Close() error {
 
 func main() {
 	flag.Parse()
+	if *keyfile == "" {
+		log.Fatalf("Please provide -keyfile")
+	}
+	key, err := ioutil.ReadFile(*keyfile)
+	if err != nil {
+		log.Fatalf("Failed to read keyfile %s: %s", *keyfile, err)
+	}
+	if len(key) < 8 {
+		log.Fatalf("Key is too short")
+	}
 	if *mode == "client" {
 		conn, err := net.Dial("tcp", *address)
 		if err != nil {
@@ -43,7 +54,7 @@ func main() {
 		}
 		err = connect(
 			&StdRWC{}, conn,
-			*password,
+			string(key),
 			"client->server",
 			"server->client",
 			1000, *period,
@@ -73,7 +84,7 @@ func main() {
 				}
 				err = connect(
 					conn2, conn,
-					*password,
+					string(key),
 					"server->client",
 					"client->server",
 					1000, *period,

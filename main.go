@@ -14,7 +14,7 @@ var (
 	mode    = flag.String("mode", "client", "client/server")
 	address = flag.String("address", "127.0.0.1:24873", "")
 	target  = flag.String("target", "127.0.0.1:22", "")
-	keyfile = flag.String("keyfile", "", "")
+	keyfile = flag.String("keyfile", "", "Path to shared key file")
 	period  = flag.Duration("period", 10*time.Millisecond, "")
 )
 

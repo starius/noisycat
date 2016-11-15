@@ -174,7 +174,8 @@ func decrypt(
 
 func connect(
 	p, c io.ReadWriteCloser,
-	password, encLabel, decLabel string,
+	key []byte,
+	encLabel, decLabel string,
 	ctSize int, d time.Duration,
 ) error {
 	if ctSize < ecdhLen {
@@ -202,7 +203,7 @@ func connect(
 	}
 	copy(peerPub[:], encBuf)
 	makeSharedSecret(&shared, &priv, &peerPub)
-	secret := string(shared[:]) + password
+	secret := string(shared[:]) + string(key)
 	encAEAD, err := makeAEAD(secret, encLabel)
 	if err != nil {
 		return fmt.Errorf("failed to make encryption AE: %s", err)

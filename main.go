@@ -54,7 +54,7 @@ func main() {
 		}
 		err = connect(
 			&StdRWC{}, conn,
-			string(key),
+			key,
 			"client->server",
 			"server->client",
 			1000, *period,
@@ -84,7 +84,7 @@ func main() {
 				}
 				err = connect(
 					conn2, conn,
-					string(key),
+					key,
 					"server->client",
 					"client->server",
 					1000, *period,

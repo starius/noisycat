@@ -41,7 +41,7 @@ func stripHeader(pt []byte) (data []byte) {
 func encrypt(
 	r io.Reader, w io.Writer,
 	aead cipher.AEAD,
-	ctSize int, d time.Duration,
+	ctSize int, period time.Duration,
 	peerState, selfState *int32,
 ) error {
 	ptSize := ctSize - aead.Overhead()
@@ -56,7 +56,7 @@ func encrypt(
 	}()
 	go func() {
 		defer wg.Done()
-		ticker := time.NewTicker(d)
+		ticker := time.NewTicker(period)
 		defer ticker.Stop()
 		for {
 			select {
@@ -83,7 +83,7 @@ func encrypt(
 		}
 	}()
 	nonce := make([]byte, aead.NonceSize())
-	ticker := time.NewTicker(d)
+	ticker := time.NewTicker(period)
 	defer ticker.Stop()
 	for i := 0; ; i++ {
 		select {
@@ -114,7 +114,7 @@ func encrypt(
 func decrypt(
 	r io.Reader, w io.Writer,
 	aead cipher.AEAD,
-	ctSize int, d time.Duration,
+	ctSize int, period time.Duration,
 	peerState, selfState *int32,
 ) error {
 	dataChan := make(chan []byte, ptWriteQueue)
@@ -140,7 +140,7 @@ func decrypt(
 		}
 	}()
 	nonce := make([]byte, aead.NonceSize())
-	ticker := time.NewTicker(d)
+	ticker := time.NewTicker(period)
 	defer ticker.Stop()
 	for i := 0; ; i++ {
 		select {
@@ -176,7 +176,7 @@ func connect(
 	p, c io.ReadWriteCloser,
 	key []byte,
 	encLabel, decLabel string,
-	ctSize int, d time.Duration,
+	ctSize int, period time.Duration,
 ) error {
 	if ctSize < ecdhLen {
 		return fmt.Errorf("too small ctSize: %d < %d", ctSize, ecdhLen)
@@ -222,7 +222,7 @@ func connect(
 		err = encrypt(
 			p, c,
 			encAEAD,
-			ctSize, d,
+			ctSize, period,
 			&peerState, &selfState,
 		)
 		errChan <- err
@@ -234,7 +234,7 @@ func connect(
 		err = decrypt(
 			c, p,
 			decAEAD,
-			ctSize, d,
+			ctSize, period,
 			&peerState, &selfState,
 		)
 		errChan <- err

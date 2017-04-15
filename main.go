@@ -71,17 +71,17 @@ func main() {
 				log.Fatalf("Failed to accept: %s", err)
 			}
 			go func() {
-				var conn2 io.ReadWriteCloser
+				var pconn io.ReadWriteCloser
 				if *target != "" {
-					conn2, err = net.Dial("tcp", *target)
+					pconn, err = net.Dial("tcp", *target)
 					if err != nil {
 						log.Fatalf("connecting %s: %s", *target, err)
 					}
 				} else {
-					conn2 = &StdRWC{}
+					pconn = &StdRWC{}
 				}
 				err = connect(
-					conn2, conn,
+					pconn, conn,
 					key,
 					"server->client",
 					"client->server",

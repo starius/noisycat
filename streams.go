@@ -173,7 +173,7 @@ func decrypt(
 }
 
 func connect(
-	p, c io.ReadWriteCloser,
+	p, c io.ReadWriter,
 	key []byte,
 	encLabel, decLabel string,
 	ctSize int, period time.Duration,
@@ -214,11 +214,7 @@ func connect(
 	}
 	errChan := make(chan error, 2)
 	var peerState, selfState int32
-	var wg sync.WaitGroup
-	wg.Add(2)
-	defer wg.Wait()
 	go func() {
-		defer wg.Done()
 		err = encrypt(
 			p, c,
 			encAEAD,
@@ -226,11 +222,8 @@ func connect(
 			&peerState, &selfState,
 		)
 		errChan <- err
-		p.Close()
-		c.Close()
 	}()
 	go func() {
-		defer wg.Done()
 		err = decrypt(
 			c, p,
 			decAEAD,
@@ -238,8 +231,6 @@ func connect(
 			&peerState, &selfState,
 		)
 		errChan <- err
-		p.Close()
-		c.Close()
 	}()
 	return <-errChan
 }

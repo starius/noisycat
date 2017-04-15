@@ -30,8 +30,6 @@ func (s *StdRWC) Write(data []byte) (int, error) {
 }
 
 func (s *StdRWC) Close() error {
-	_ = os.Stdin.Close()
-	_ = os.Stdout.Close()
 	return nil
 }
 

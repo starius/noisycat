@@ -80,12 +80,15 @@ func main() {
 				timeout: *timeout,
 			}
 			go func() {
+				defer conn.Close()
 				var pconn io.ReadWriteCloser
 				if *target != "" {
 					pconn, err = net.Dial("tcp", *target)
 					if err != nil {
-						log.Fatalf("connecting %s: %s", *target, err)
+						log.Printf("connecting %s: %s", *target, err)
+						return
 					}
+					defer pconn.Close()
 				} else {
 					pconn = &StdRWC{}
 				}
@@ -97,7 +100,8 @@ func main() {
 					1000, *period,
 				)
 				if err != nil {
-					log.Fatalf("Failed: %s", err)
+					log.Printf("Failed: %s", err)
+					return
 				}
 			}()
 		}

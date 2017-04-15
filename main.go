@@ -16,6 +16,7 @@ var (
 	target  = flag.String("target", "127.0.0.1:22", "")
 	keyfile = flag.String("keyfile", "", "Path to shared key file")
 	period  = flag.Duration("period", 10*time.Millisecond, "")
+	timeout = flag.Duration("timeout", 5*time.Second, "")
 )
 
 type StdRWC struct {
@@ -50,8 +51,12 @@ func main() {
 		if err != nil {
 			log.Fatalf("Failed to connect to %s: %s", *address, err)
 		}
+		cconn := &TimeoutConn{
+			c:       conn,
+			timeout: *timeout,
+		}
 		err = connect(
-			&StdRWC{}, conn,
+			&StdRWC{}, cconn,
 			key,
 			"client->server",
 			"server->client",
@@ -70,6 +75,10 @@ func main() {
 			if err != nil {
 				log.Fatalf("Failed to accept: %s", err)
 			}
+			cconn := &TimeoutConn{
+				c:       conn,
+				timeout: *timeout,
+			}
 			go func() {
 				var pconn io.ReadWriteCloser
 				if *target != "" {
@@ -81,7 +90,7 @@ func main() {
 					pconn = &StdRWC{}
 				}
 				err = connect(
-					pconn, conn,
+					pconn, cconn,
 					key,
 					"server->client",
 					"client->server",
